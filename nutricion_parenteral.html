@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Nutrición Parenteral - LN. Carlos Alfredo Galindo Martín</title>
+<style>
+  :root{
+    --azul-primario:#0d5c75;
+    --azul-oscuro:#083a4a;
+    --azul-claro:#e5f2f5;
+    --acento:#1a8fa8;
+    --acento2:#c77b2c;
+    --verde:#2e7d5b;
+    --gris-borde:#d4dfe2;
+    --texto:#1f2d32;
+    --texto-suave:#5a6b70;
+    --blanco:#ffffff;
+    --alerta-bg:#fff4e5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#f4f9fa 0%,#eaf2f3 100%);
+    color:var(--texto);
+    padding-bottom:40px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--azul-primario),var(--azul-oscuro));
+    color:var(--blanco);
+    padding:22px 16px 20px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,0.15);
+  }
+  header h1{
+    margin:0 0 4px;
+    font-size:1.35em;
+    letter-spacing:0.3px;
+  }
+  header p{
+    margin:0;
+    font-size:0.82em;
+    opacity:0.9;
+  }
+  .contenedor{
+    max-width:640px;
+    margin:16px auto;
+    padding:0 14px;
+  }
+  .tarjeta{
+    background:var(--blanco);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 2px 8px rgba(13,92,117,0.1);
+    border:1px solid var(--gris-borde);
+  }
+  .tarjeta h2{
+    font-size:1.05em;
+    color:var(--azul-primario);
+    margin:0 0 14px;
+    border-bottom:2px solid var(--azul-claro);
+    padding-bottom:8px;
+  }
+  .modo-selector{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .modo-btn{
+    flex:1;
+    padding:12px 8px;
+    border:2px solid var(--acento);
+    background:var(--blanco);
+    color:var(--acento);
+    border-radius:10px;
+    font-weight:600;
+    font-size:0.88em;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .modo-btn.activo{
+    background:var(--acento);
+    color:var(--blanco);
+  }
+  label{
+    display:block;
+    font-size:0.85em;
+    font-weight:600;
+    color:var(--texto-suave);
+    margin:12px 0 5px;
+  }
+  input[type="number"], select{
+    width:100%;
+    padding:10px 12px;
+    border:1.5px solid var(--gris-borde);
+    border-radius:8px;
+    font-size:1em;
+    background:var(--blanco);
+    color:var(--texto);
+  }
+  input[type="number"]:focus, select:focus{
+    outline:none;
+    border-color:var(--acento);
+  }
+  .fila{
+    display:flex;
+    gap:10px;
+  }
+  .fila > div{
+    flex:1;
+  }
+  .radio-grupo{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:6px;
+  }
+  .radio-opcion{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 10px;
+    border:1.5px solid var(--gris-borde);
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.88em;
+  }
+  .radio-opcion:has(input:checked){
+    border-color:var(--acento);
+    background:var(--azul-claro);
+  }
+  .radio-opcion input{
+    accent-color:var(--acento);
+  }
+  .hint{
+    font-size:0.75em;
+    color:var(--texto-suave);
+    margin-top:3px;
+  }
+  .separador{
+    height:1px;
+    background:var(--gris-borde);
+    margin:16px 0;
+  }
+  .resultado-panel{
+    background:var(--azul-claro);
+    border-radius:10px;
+    padding:14px;
+    margin-top:10px;
+  }
+  .resultado-fila{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 0;
+    font-size:0.9em;
+    border-bottom:1px dashed rgba(13,92,117,0.2);
+  }
+  .resultado-fila:last-child{
+    border-bottom:none;
+  }
+  .resultado-fila .val{
+    font-weight:700;
+    color:var(--azul-primario);
+  }
+  .prescripcion-card{
+    background:linear-gradient(135deg,var(--azul-primario),var(--azul-oscuro));
+    color:var(--blanco);
+    border-radius:12px;
+    padding:18px;
+    margin-top:16px;
+  }
+  .prescripcion-card h3{
+    margin:0 0 12px;
+    font-size:1em;
+    text-align:center;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  .prescripcion-fila{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    font-size:0.92em;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+  }
+  .prescripcion-fila:last-child{
+    border-bottom:none;
+    padding-top:12px;
+    font-weight:700;
+    font-size:1.05em;
+  }
+  .prescripcion-fila .etiqueta{
+    opacity:0.85;
+  }
+  .badge{
+    display:inline-block;
+    background:var(--acento2);
+    color:var(--blanco);
+    font-size:0.7em;
+    padding:2px 8px;
+    border-radius:20px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .anx-input-mL{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px;
+    border:1.5px solid var(--gris-borde);
+    border-radius:8px;
+    margin-bottom:8px;
+  }
+  .anx-input-mL label{
+    margin:0;
+    flex:1;
+  }
+  .anx-input-mL input{
+    width:100px;
+  }
+  .porcentaje-barra{
+    display:flex;
+    height:22px;
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:6px;
+    font-size:0.7em;
+    color:var(--blanco);
+  }
+  .porcentaje-barra div{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .oculto{
+    display:none !important;
+  }
+  footer{
+    text-align:center;
+    padding:20px 14px;
+    font-size:0.78em;
+    color:var(--texto-suave);
+  }
+  .divider-label{
+    text-align:center;
+    font-size:0.75em;
+    color:var(--texto-suave);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin:14px 0 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Calculadora de Nutrición Parenteral</h1>
+  <p>LN. Carlos Alfredo Galindo Martín</p>
+</header>
+
+<div class="contenedor">
+
+  <div class="tarjeta">
+    <div class="modo-selector">
+      <button class="modo-btn activo" id="btnModoPrescripcion" onclick="cambiarModo('prescripcion')">Peso → Prescripción</button>
+      <button class="modo-btn" id="btnModoAnalisis" onclick="cambiarModo('analisis')">Prescripción → Especificaciones</button>
+    </div>
+  </div>
+
+  <!-- ================= MODO 1: PESO -> PRESCRIPCION ================= -->
+  <div id="panelPrescripcion">
+
+    <div class="tarjeta">
+      <h2>Datos antropométricos</h2>
+      <div class="fila">
+        <div>
+          <label>Sexo</label>
+          <select id="sexo">
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label>Talla (cm)</label>
+          <input type="number" id="talla" step="0.1" min="100" max="250" placeholder="Ej. 165">
+        </div>
+      </div>
+      <div class="resultado-panel oculto" id="panelPesoIdeal">
+        <div class="resultado-fila">
+          <span>Peso ideal (ARDSnet)</span>
+          <span class="val" id="pesoIdealValor">--</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Metas nutricionales</h2>
+      <label>Aminoácidos deseados (g/Kg de peso)</label>
+      <input type="number" id="aaPorKg" step="0.01" min="0" max="6" placeholder="0.00">
+      <div class="hint">Dosis habitual: 0.5 a 2.5 g/Kg</div>
+
+      <label>Aporte calórico deseado (Kcal/Kg de peso)</label>
+      <input type="number" id="kcalPorKg" step="0.01" min="0" max="60" placeholder="00.00">
+      <div class="hint">Dosis habitual: 5 a 30 Kcal/Kg</div>
+
+      <label>Concentración de la mezcla de aminoácidos</label>
+      <div class="radio-grupo">
+        <label class="radio-opcion"><input type="radio" name="concAA" value="0.08" checked> Aminoácidos al 8%</label>
+        <label class="radio-opcion"><input type="radio" name="concAA" value="0.085"> Aminoácidos al 8.5%</label>
+        <label class="radio-opcion"><input type="radio" name="concAA" value="0.10"> Aminoácidos al 10%</label>
+      </div>
+
+      <label>Distribución de calorías no proteicas</label>
+      <div class="radio-grupo">
+        <label class="radio-opcion"><input type="radio" name="distNP" value="100-0" checked> 100% Dextrosa</label>
+        <label class="radio-opcion"><input type="radio" name="distNP" value="70-30"> 70% Dextrosa - 30% Lípidos</label>
+        <label class="radio-opcion"><input type="radio" name="distNP" value="60-40"> 60% Dextrosa - 40% Lípidos</label>
+        <label class="radio-opcion"><input type="radio" name="distNP" value="50-50"> 50% Dextrosa - 50% Lípidos</label>
+      </div>
+
+      <div class="fila">
+        <div>
+          <label>Volumen de trazas (mL)</label>
+          <input type="number" id="mlTrazas" step="1" min="0" placeholder="00">
+        </div>
+        <div>
+          <label>Volumen de multivitamínico (mL)</label>
+          <input type="number" id="mlMulti" step="1" min="0" placeholder="00">
+        </div>
+      </div>
+    </div>
+
+    <div class="prescripcion-card oculto" id="tarjetaResultadoPrescripcion">
+      <h3>Prescripción calculada</h3>
+      <div class="prescripcion-fila"><span class="etiqueta">Aminoácidos totales</span><span id="rAAg">-- g</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Volumen de aminoácidos</span><span id="rAAmL">-- mL</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías totales</span><span id="rKcalTot">-- Kcal</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías proteicas</span><span id="rKcalP">-- Kcal</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías no proteicas</span><span id="rKcalNP">-- Kcal</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Dextrosa</span><span id="rDextrosa">-- g / -- mL (50%)</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Lípidos</span><span id="rLipidos">-- g / -- mL (20%)</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Trazas</span><span id="rTrazas">-- mL</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Multivitamínico</span><span id="rMulti">-- mL</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">g Dextrosa/Kg</span><span id="rDextrosaKg">-- g/Kg</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">g Lípidos/Kg</span><span id="rLipidosKg">-- g/Kg</span></div>
+      <div class="prescripcion-fila"><span>Volumen total</span><span id="rVolTotal">-- mL</span></div>
+    </div>
+
+  </div>
+
+  <!-- ================= MODO 2: PRESCRIPCION -> ESPECIFICACIONES ================= -->
+  <div id="panelAnalisis" class="oculto">
+
+    <div class="tarjeta">
+      <h2>Datos antropométricos</h2>
+      <div class="fila">
+        <div>
+          <label>Sexo</label>
+          <select id="sexoAn">
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+          </select>
+        </div>
+        <div>
+          <label>Talla (cm)</label>
+          <input type="number" id="tallaAn" step="0.1" min="100" max="250" placeholder="Ej. 165">
+        </div>
+      </div>
+      <div class="resultado-panel oculto" id="panelPesoIdealAn">
+        <div class="resultado-fila">
+          <span>Peso ideal (ARDSnet)</span>
+          <span class="val" id="pesoIdealValorAn">--</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Volúmenes de la mezcla preparada</h2>
+
+      <label>Concentración de aminoácidos utilizada</label>
+      <select id="concAAAn">
+        <option value="0.08">8%</option>
+        <option value="0.085">8.5%</option>
+        <option value="0.10">10%</option>
+      </select>
+      <label>Volumen de aminoácidos (mL)</label>
+      <input type="number" id="mlAAAn" step="0.1" min="0" placeholder="0.0">
+
+      <div class="divider-label">Dextrosa al 50%</div>
+      <label>Volumen de dextrosa (mL)</label>
+      <input type="number" id="mlDextrosaAn" step="0.1" min="0" placeholder="0.0">
+
+      <div class="divider-label">Lípidos al 20%</div>
+      <label>Volumen de lípidos (mL)</label>
+      <input type="number" id="mlLipidosAn" step="0.1" min="0" placeholder="0.0">
+
+      <div class="fila">
+        <div>
+          <label>Volumen de trazas (mL)</label>
+          <input type="number" id="mlTrazasAn" step="1" min="0" placeholder="00">
+        </div>
+        <div>
+          <label>Volumen de multivitamínico (mL)</label>
+          <input type="number" id="mlMultiAn" step="1" min="0" placeholder="00">
+        </div>
+      </div>
+    </div>
+
+    <div class="prescripcion-card oculto" id="tarjetaResultadoAnalisis">
+      <h3>Especificaciones de la mezcla</h3>
+      <div class="prescripcion-fila"><span class="etiqueta">Aminoácidos</span><span id="aAAg">-- g</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Dextrosa</span><span id="aDextrosaG">-- g</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Lípidos</span><span id="aLipidosG">-- g</span></div>
+      <div class="separador" style="background:rgba(255,255,255,0.2);"></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías proteicas</span><span id="aKcalP">-- Kcal</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías no proteicas</span><span id="aKcalNP">-- Kcal</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Calorías totales</span><span id="aKcalTot">-- Kcal</span></div>
+      <div class="separador" style="background:rgba(255,255,255,0.2);"></div>
+      <div class="prescripcion-fila"><span class="etiqueta">Distribución no proteica</span><span id="aDistNP">Dex --% / Líp --%</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">g Aminoácidos/Kg</span><span id="aAAKg">-- g/Kg</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">g Dextrosa/Kg</span><span id="aDextrosaKg">-- g/Kg</span></div>
+      <div class="prescripcion-fila"><span class="etiqueta">g Lípidos/Kg</span><span id="aLipidosKg">-- g/Kg</span></div>
+      <div class="prescripcion-fila"><span>Kcal totales/Kg</span><span id="aKcalKg">-- Kcal/Kg</span></div>
+      <div class="prescripcion-fila"><span>Volumen total</span><span id="aVolTotal">-- mL</span></div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Herramienta educativa desarrollada por LN. Carlos Alfredo Galindo Martín<br>
+  Uso exclusivo con fines docentes en el área de nutrición clínica
+</footer>
+
+<script>
+// ================= UTILIDADES COMPARTIDAS =================
+function calcularPesoIdealARDSnet(sexo, tallaCm){
+  const base = sexo === 'H' ? 50 : 45.5;
+  if(tallaCm <= 152.4){
+    return base;
+  }
+  const tallaIn = tallaCm / 2.54;
+  return base + 2.3 * (tallaIn - 60);
+}
+
+function fmt(num, dec){
+  if(isNaN(num) || num === null) return '--';
+  return num.toLocaleString('es-MX', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+
+// Redondeo de gramos a entero: piso si la fracción es <0.5, entero superior si es >=0.5
+function redondearGramos(valor){
+  const piso = Math.floor(valor);
+  const resto = valor - piso;
+  return resto < 0.5 ? piso : piso + 1;
+}
+
+// ================= CAMBIO DE MODO =================
+function cambiarModo(modo){
+  const btnP = document.getElementById('btnModoPrescripcion');
+  const btnA = document.getElementById('btnModoAnalisis');
+  const panelP = document.getElementById('panelPrescripcion');
+  const panelA = document.getElementById('panelAnalisis');
+
+  if(modo === 'prescripcion'){
+    btnP.classList.add('activo');
+    btnA.classList.remove('activo');
+    panelP.classList.remove('oculto');
+    panelA.classList.add('oculto');
+  } else {
+    btnA.classList.add('activo');
+    btnP.classList.remove('activo');
+    panelA.classList.remove('oculto');
+    panelP.classList.add('oculto');
+  }
+}
+
+// ================= MODO 1: PESO -> PRESCRIPCION =================
+let pesoIdealGlobal = null;
+
+function actualizarPesoIdeal(){
+  const sexo = document.getElementById('sexo').value;
+  const talla = parseFloat(document.getElementById('talla').value);
+  const panel = document.getElementById('panelPesoIdeal');
+
+  if(!talla || talla <= 0){
+    panel.classList.add('oculto');
+    pesoIdealGlobal = null;
+    return;
+  }
+
+  pesoIdealGlobal = Math.round(calcularPesoIdealARDSnet(sexo, talla) * 10) / 10;
+  document.getElementById('pesoIdealValor').textContent = fmt(pesoIdealGlobal, 1) + ' Kg';
+  panel.classList.remove('oculto');
+  calcularPrescripcion();
+}
+
+function calcularPrescripcion(){
+  const tarjeta = document.getElementById('tarjetaResultadoPrescripcion');
+
+  if(!pesoIdealGlobal){
+    tarjeta.classList.add('oculto');
+    return;
+  }
+
+  const aaPorKg = parseFloat(document.getElementById('aaPorKg').value);
+  const kcalPorKg = parseFloat(document.getElementById('kcalPorKg').value);
+  const concAA = parseFloat(document.querySelector('input[name="concAA"]:checked').value);
+  const distNP = document.querySelector('input[name="distNP"]:checked').value;
+  const mlTrazas = parseFloat(document.getElementById('mlTrazas').value) || 0;
+  const mlMulti = parseFloat(document.getElementById('mlMulti').value) || 0;
+
+  if(isNaN(aaPorKg) || isNaN(kcalPorKg) || aaPorKg <= 0 || kcalPorKg <= 0){
+    tarjeta.classList.add('oculto');
+    return;
+  }
+
+  const peso = pesoIdealGlobal;
+
+  // Aminoácidos (cálculo inicial, luego redondeo a entero)
+  let aaTotalesG = aaPorKg * peso;
+  aaTotalesG = redondearGramos(aaTotalesG);
+  const aaTotalesML = aaTotalesG / concAA;
+
+  // Calorías (proteicas recalculadas ya con el gramaje redondeado de aminoácidos)
+  const kcalTotales = kcalPorKg * peso;
+  const kcalProteicas = aaTotalesG * 4;
+  const kcalNoProteicas = kcalTotales - kcalProteicas;
+
+  // Distribución no proteica
+  const [pctDex, pctLip] = distNP.split('-').map(v => parseFloat(v) / 100);
+  const kcalDextrosa = kcalNoProteicas * pctDex;
+  const kcalLipidos = kcalNoProteicas * pctLip;
+
+  let gDextrosa = kcalDextrosa / 3.4;
+  gDextrosa = redondearGramos(gDextrosa);
+  const mlDextrosa = gDextrosa * 2; // dextrosa al 50%: 1g = 2mL
+
+  let gLipidos = kcalLipidos / 9;
+  gLipidos = pctLip > 0 ? redondearGramos(gLipidos) : 0;
+  const mlLipidos = gLipidos * 5; // lipidos al 20%: 1g = 5mL
+
+  const volTotal = aaTotalesML + mlDextrosa + mlLipidos + mlTrazas + mlMulti;
+
+  const dextrosaPorKg = gDextrosa / peso;
+  const lipidosPorKg = gLipidos / peso;
+
+  // Render
+  document.getElementById('rAAg').textContent = fmt(aaTotalesG,0) + ' g';
+  document.getElementById('rAAmL').textContent = fmt(aaTotalesML,1) + ' mL';
+  document.getElementById('rKcalTot').textContent = fmt(kcalTotales,1) + ' Kcal';
+  document.getElementById('rKcalP').textContent = fmt(kcalProteicas,1) + ' Kcal';
+  document.getElementById('rKcalNP').textContent = fmt(kcalNoProteicas,1) + ' Kcal';
+  document.getElementById('rDextrosa').textContent = fmt(gDextrosa,0) + ' g / ' + fmt(mlDextrosa,1) + ' mL (50%)';
+  document.getElementById('rLipidos').textContent = (pctLip > 0)
+    ? fmt(gLipidos,0) + ' g / ' + fmt(mlLipidos,1) + ' mL (20%)'
+    : '0 g / 0 mL (20%)';
+  document.getElementById('rTrazas').textContent = fmt(mlTrazas,0) + ' mL';
+  document.getElementById('rMulti').textContent = fmt(mlMulti,0) + ' mL';
+  document.getElementById('rDextrosaKg').textContent = fmt(dextrosaPorKg,2) + ' g/Kg';
+  document.getElementById('rLipidosKg').textContent = fmt(lipidosPorKg,2) + ' g/Kg';
+  document.getElementById('rVolTotal').textContent = fmt(volTotal,1) + ' mL';
+
+  tarjeta.classList.remove('oculto');
+}
+
+// ================= MODO 2: PRESCRIPCION -> ESPECIFICACIONES =================
+let pesoIdealGlobalAn = null;
+
+function actualizarPesoIdealAn(){
+  const sexo = document.getElementById('sexoAn').value;
+  const talla = parseFloat(document.getElementById('tallaAn').value);
+  const panel = document.getElementById('panelPesoIdealAn');
+
+  if(!talla || talla <= 0){
+    panel.classList.add('oculto');
+    pesoIdealGlobalAn = null;
+    return;
+  }
+
+  pesoIdealGlobalAn = Math.round(calcularPesoIdealARDSnet(sexo, talla) * 10) / 10;
+  document.getElementById('pesoIdealValorAn').textContent = fmt(pesoIdealGlobalAn, 1) + ' Kg';
+  panel.classList.remove('oculto');
+  calcularAnalisis();
+}
+
+function calcularAnalisis(){
+  const tarjeta = document.getElementById('tarjetaResultadoAnalisis');
+
+  if(!pesoIdealGlobalAn){
+    tarjeta.classList.add('oculto');
+    return;
+  }
+
+  const concAA = parseFloat(document.getElementById('concAAAn').value);
+  const mlAA = parseFloat(document.getElementById('mlAAAn').value) || 0;
+  const mlDextrosa = parseFloat(document.getElementById('mlDextrosaAn').value) || 0;
+  const mlLipidos = parseFloat(document.getElementById('mlLipidosAn').value) || 0;
+  const mlTrazas = parseFloat(document.getElementById('mlTrazasAn').value) || 0;
+  const mlMulti = parseFloat(document.getElementById('mlMultiAn').value) || 0;
+
+  if(mlAA <= 0 && mlDextrosa <= 0 && mlLipidos <= 0){
+    tarjeta.classList.add('oculto');
+    return;
+  }
+
+  const peso = pesoIdealGlobalAn;
+
+  // Gramos a partir de volumenes y concentraciones
+  const gAA = mlAA * concAA;          // g = mL * concentracion (g/mL)
+  const gDextrosa = mlDextrosa * 0.5; // dextrosa 50%: 1mL = 0.5g
+  const gLipidos = mlLipidos * 0.2;   // lipidos 20%: 1mL = 0.2g
+
+  // Calorias
+  const kcalAA = gAA * 4;
+  const kcalDextrosa = gDextrosa * 3.4;
+  const kcalLipidos = gLipidos * 9;
+
+  const kcalNoProteicas = kcalDextrosa + kcalLipidos;
+  const kcalTotales = kcalAA + kcalNoProteicas;
+
+  const pctDex = kcalNoProteicas > 0 ? (kcalDextrosa / kcalNoProteicas) * 100 : 0;
+  const pctLip = kcalNoProteicas > 0 ? (kcalLipidos / kcalNoProteicas) * 100 : 0;
+
+  const gAAPorKg = gAA / peso;
+  const gDextrosaPorKg = gDextrosa / peso;
+  const gLipidosPorKg = gLipidos / peso;
+  const kcalPorKg = kcalTotales / peso;
+
+  const volTotal = mlAA + mlDextrosa + mlLipidos + mlTrazas + mlMulti;
+
+  // Render
+  document.getElementById('aAAg').textContent = fmt(gAA,2) + ' g';
+  document.getElementById('aDextrosaG').textContent = fmt(gDextrosa,2) + ' g';
+  document.getElementById('aLipidosG').textContent = fmt(gLipidos,2) + ' g';
+  document.getElementById('aKcalP').textContent = fmt(kcalAA,1) + ' Kcal';
+  document.getElementById('aKcalNP').textContent = fmt(kcalNoProteicas,1) + ' Kcal';
+  document.getElementById('aKcalTot').textContent = fmt(kcalTotales,1) + ' Kcal';
+  document.getElementById('aDistNP').textContent = 'Dex ' + fmt(pctDex,1) + '% / Líp ' + fmt(pctLip,1) + '%';
+  document.getElementById('aAAKg').textContent = fmt(gAAPorKg,2) + ' g/Kg';
+  document.getElementById('aDextrosaKg').textContent = fmt(gDextrosaPorKg,2) + ' g/Kg';
+  document.getElementById('aLipidosKg').textContent = fmt(gLipidosPorKg,2) + ' g/Kg';
+  document.getElementById('aKcalKg').textContent = fmt(kcalPorKg,2) + ' Kcal/Kg';
+  document.getElementById('aVolTotal').textContent = fmt(volTotal,1) + ' mL';
+
+  tarjeta.classList.remove('oculto');
+}
+
+// ================= LISTENERS MODO 1 =================
+document.getElementById('sexo').addEventListener('change', actualizarPesoIdeal);
+document.getElementById('talla').addEventListener('input', actualizarPesoIdeal);
+document.getElementById('aaPorKg').addEventListener('input', calcularPrescripcion);
+document.getElementById('kcalPorKg').addEventListener('input', calcularPrescripcion);
+document.getElementById('mlTrazas').addEventListener('input', calcularPrescripcion);
+document.getElementById('mlMulti').addEventListener('input', calcularPrescripcion);
+document.querySelectorAll('input[name="concAA"]').forEach(r => r.addEventListener('change', calcularPrescripcion));
+document.querySelectorAll('input[name="distNP"]').forEach(r => r.addEventListener('change', calcularPrescripcion));
+
+// ================= LISTENERS MODO 2 =================
+document.getElementById('sexoAn').addEventListener('change', actualizarPesoIdealAn);
+document.getElementById('tallaAn').addEventListener('input', actualizarPesoIdealAn);
+document.getElementById('concAAAn').addEventListener('change', calcularAnalisis);
+document.getElementById('mlAAAn').addEventListener('input', calcularAnalisis);
+document.getElementById('mlDextrosaAn').addEventListener('input', calcularAnalisis);
+document.getElementById('mlLipidosAn').addEventListener('input', calcularAnalisis);
+document.getElementById('mlTrazasAn').addEventListener('input', calcularAnalisis);
+document.getElementById('mlMultiAn').addEventListener('input', calcularAnalisis);
+</script>
+
+</body>
+</html>
